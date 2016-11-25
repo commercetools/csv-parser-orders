@@ -6,7 +6,6 @@ const CONSTANTS = {
     'fromState',
     'toState',
   ],
-
   standardOption: {
     batchSize: 100,
     delimiter: ',',
