@@ -1,7 +1,9 @@
 import test from 'tape'
 import LineItemStateCsvParser from 'lineitemstate-csv-parser'
+import StreamTest from 'streamtest'
+import path from 'path'
 import { SphereClient } from 'sphere-node-sdk'
-
+import fs from 'fs'
 import CONSTANTS from '../src/constants'
 
 let PROJECT_KEY
@@ -10,6 +12,13 @@ if (process.env.CI === 'true')
   PROJECT_KEY = process.env.SPHERE_PROJECT_KEY
 else
   PROJECT_KEY = process.env.npm_config_projectkey
+
+const logger = {
+  error: () => {},
+  warn: () => {},
+  info: () => {},
+  verbose: () => {},
+}
 
 const apiClientConfig = {
   config: {
@@ -73,4 +82,77 @@ test(`LineItemStateCsvParser
   )
 
   t.end()
+})
+
+test(`LineItemStateCsvParser
+  should throw when options is invalid`, (t) => {
+  // eslint-disable-next-line no-new
+  t.throws(() => { new LineItemStateCsvParser(logger, {}) })
+  t.end()
+})
+
+test(`LineItemStateCsvParser::parse
+  should accept a stream and output a stream`, (t) => {
+  const lineItemStateCsvParser = new LineItemStateCsvParser(
+    apiClientConfig,
+    logger
+  )
+  const readStream = fs.createReadStream(
+    path.join(__dirname, 'helpers/lineitemstate-sample.csv')
+  )
+  const outputStream = StreamTest['v2'].toText((err, result) => {
+    const _result = JSON.parse(result)
+    t.equal(_result.length, 1, 'All rows in the csv is parsed')
+    t.end()
+  })
+  lineItemStateCsvParser.parse(readStream, outputStream)
+})
+
+test(`LineItemStateCsvParser::processData
+  should accept a stream and output a stream`, (t) => {
+  const lineItemStateCsvParser = new LineItemStateCsvParser(
+    apiClientConfig,
+    logger
+  )
+  const mockOrder = {
+    orderNumber: '123',
+    fromState: 'ordered',
+    toState: 'shipped',
+    quantity: '234',
+    lineItemId: '123',
+  }
+  lineItemStateCsvParser.processData(mockOrder).then((result) => {
+    t.equal(result.orderNumber, mockOrder.orderNumber, 'orderNumber is parsed')
+    t.equal(
+      result.lineItems[0].state[0].quantity,
+      parseInt(mockOrder.quantity, 10),
+      'lineItem quantity is parsed'
+    )
+    t.equal(
+      result.lineItems[0].state[0].state.id,
+      mockOrder.toState,
+      'lineItem state is parsed'
+    )
+    t.end()
+  })
+})
+
+test(`LineItemStateCsvParser::processData
+  should return error if required headers is missing`, (t) => {
+  const lineItemStateCsvParser = new LineItemStateCsvParser(
+    apiClientConfig,
+    logger
+  )
+  const mockOrder = {
+    fromState: 'okay',
+    toState: 'yeah',
+    quantity: '234',
+    lineItemId: '123',
+  }
+  lineItemStateCsvParser.processData(mockOrder)
+  .then(t.fail)
+  .catch((error) => {
+    t.equal(error, 'Required headers missing: \'orderNumber\'')
+    t.end()
+  })
 })

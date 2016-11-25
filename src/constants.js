@@ -1,12 +1,11 @@
 const CONSTANTS = {
-  field: {
-    integer: new RegExp(/^-?\d+$/),
-    money: new RegExp(/^([A-Z]{3}) (-?\d+)$/),
-  },
-
-  header: {
-    sku: 'variant-sku',
-  },
+  requiredHeaders: [
+    'orderNumber',
+    'lineItemId',
+    'quantity',
+    'fromState',
+    'toState',
+  ],
 
   standardOption: {
     batchSize: 100,
