@@ -47,7 +47,9 @@
     "settings": {
       "import/resolver": {
         "node": {
-          "paths": ["src/"]
+          "paths": [
+            "src/"
+          ]
         }
       }
     }
@@ -85,5 +87,10 @@
     ],
     "sourceMap": false,
     "instrument": false
+  },
+  "dependencies": {
+    "sphere-node-sdk": "^1.16.1",
+    "underscore": "^1.8.3",
+    "underscore-mixins": "^0.1.4"
   }
 }
