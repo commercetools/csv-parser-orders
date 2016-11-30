@@ -51,7 +51,10 @@ export default class LineItemStateCsvParser {
     this.logger.verbose('Processing data to CTP format')
     const _data = _.clone(data)
     const csvHeaders = _.keys(data)
-    const headerDiff = _.difference(CONS.requiredHeaders, csvHeaders)
+    const headerDiff = _.difference(
+      CONS.requiredHeaders.lineItemState,
+      csvHeaders
+    )
     if (headerDiff.length)
       return Promise.reject(
         `Required headers missing: '${headerDiff.join(',')}'`
