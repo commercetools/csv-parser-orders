@@ -57,23 +57,26 @@ export default class AddReturnInfoCsvParser {
       if (!allOrders.length)
         allOrders.push(currentOrder)
       else {
-        let isSameOrder = false
-        let sameReturnInfo = false
+        const existingOrders = allOrders.filter(
+          order =>
+            order.orderNumber === currentOrder.orderNumber
+        )
 
-        _.each(allOrders, (order) => {
-          if (order.orderNumber === currentOrder.orderNumber) {
-            isSameOrder = true
-            _.each(order.returnInfo, (returnInfo) => {
-              if (returnInfo._returnId === currentOrder.returnInfo[0]._returnId) {
-                sameReturnInfo = true
+        if (existingOrders.length)
+          existingOrders.forEach((existingOrder) => {
+            const existingReturnInfos = existingOrder.returnInfo.filter(
+              returnInfo =>
+                returnInfo._returnId === currentOrder.returnInfo[0]._returnId
+            )
+
+            if (existingReturnInfos.length)
+              existingReturnInfos.forEach((returnInfo) => {
                 returnInfo.items.push(...currentOrder.returnInfo[0].items)
-              }
-            })
-            if (!sameReturnInfo)
-              order.returnInfo.push(...currentOrder.returnInfo)
-          }
-        })
-        if (!isSameOrder)
+              })
+            else
+              existingOrder.returnInfo.push(...currentOrder.returnInfo)
+          })
+        else
           allOrders.push(currentOrder)
       }
       return allOrders
