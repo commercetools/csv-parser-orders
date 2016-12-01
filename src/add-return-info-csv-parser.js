@@ -62,21 +62,21 @@ export default class AddReturnInfoCsvParser {
             order.orderNumber === currentOrder.orderNumber
         )
 
-        if (existingOrders.length)
-          existingOrders.forEach((existingOrder) => {
-            const existingReturnInfos = existingOrder.returnInfo.filter(
-              returnInfo =>
-                returnInfo._returnId === currentOrder.returnInfo[0]._returnId
-            )
+        existingOrders.forEach((existingOrder) => {
+          const existingReturnInfos = existingOrder.returnInfo.filter(
+            returnInfo =>
+              returnInfo._returnId === currentOrder.returnInfo[0]._returnId
+          )
 
-            if (existingReturnInfos.length)
-              existingReturnInfos.forEach((returnInfo) => {
-                returnInfo.items.push(...currentOrder.returnInfo[0].items)
-              })
-            else
-              existingOrder.returnInfo.push(...currentOrder.returnInfo)
+          existingReturnInfos.forEach((returnInfo) => {
+            returnInfo.items.push(...currentOrder.returnInfo[0].items)
           })
-        else
+
+          if (!existingReturnInfos.length)
+            existingOrder.returnInfo.push(...currentOrder.returnInfo)
+        })
+
+        if (!existingOrders.length)
           allOrders.push(currentOrder)
       }
       return allOrders
