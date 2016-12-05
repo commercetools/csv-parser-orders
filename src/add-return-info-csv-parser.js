@@ -48,34 +48,36 @@ export default class AddReturnInfoCsvParser {
     .doto(data => this.logger.verbose(
       `Converted row${rowIndex}: ${JSON.stringify(data)}`
     ))
-    .reduce([], (memo, next) => {
+    .reduce([], (allOrders, currentOrder) => {
       /*
         Reduce all orders to one order object
         1. Groups all orders by the orderNumber,
         2. Group all returnInfo of an order by the _returnId
       */
-      const allOrders = memo
-      const curOrder = next
       if (!allOrders.length)
-        allOrders.push(curOrder)
+        allOrders.push(currentOrder)
       else {
-        let found1 = false
-        _.each(allOrders, (order) => {
-          if (order.orderNumber === curOrder.orderNumber) {
-            found1 = true
-            let found2 = false
-            _.each(order.returnInfo, (returnInfo) => {
-              if (returnInfo._returnId === curOrder.returnInfo[0]._returnId) {
-                found2 = true
-                returnInfo.items.push(...curOrder.returnInfo[0].items)
-              }
-            })
-            if (!found2)
-              order.returnInfo.push(...curOrder.returnInfo)
-          }
+        const existingOrders = allOrders.filter(
+          order =>
+            order.orderNumber === currentOrder.orderNumber
+        )
+
+        existingOrders.forEach((existingOrder) => {
+          const existingReturnInfos = existingOrder.returnInfo.filter(
+            returnInfo =>
+              returnInfo._returnId === currentOrder.returnInfo[0]._returnId
+          )
+
+          existingReturnInfos.forEach((returnInfo) => {
+            returnInfo.items.push(...currentOrder.returnInfo[0].items)
+          })
+
+          if (!existingReturnInfos.length)
+            existingOrder.returnInfo.push(...currentOrder.returnInfo)
         })
-        if (!found1)
-          allOrders.push(next)
+
+        if (!existingOrders.length)
+          allOrders.push(currentOrder)
       }
       return allOrders
     })
