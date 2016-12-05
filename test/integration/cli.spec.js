@@ -57,6 +57,103 @@ test('CLI takes input from file', (t) => {
   )
 })
 
+test('CLI accepts lineitemstate csv type', (t) => {
+  const csvFilePath = './test/helpers/lineitemstate-sample.csv'
+
+  exec(
+    `${binPath} -p ${PROJECT_KEY} -t lineitemstate --inputFile ${csvFilePath}`,
+    (error, stdout, stderr) => {
+      const expectedOutput = [{
+        orderNumber: '234',
+        lineItems: [{
+          state: [{
+            quantity: 10,
+            state: {
+              id: 'shipped',
+            },
+          }],
+        }],
+      }]
+      t.false(error && stderr, 'returns no error')
+      t.deepEqual(
+        JSON.parse(stdout),
+        expectedOutput,
+        'CLI parses lineitemstate csv type'
+      )
+      t.end()
+    }
+  )
+})
+
+test('CLI accepts returninfo csv type', (t) => {
+  const csvFilePath = './test/helpers/return-info-sample.csv'
+
+  exec(
+    `${binPath} -p ${PROJECT_KEY} -t returninfo --inputFile ${csvFilePath}`,
+    (error, stdout, stderr) => {
+      const expectedOutput = [
+        {
+          orderNumber: '123',
+          returnInfo: [
+            {
+              returnTrackingId: 'aefa34fe',
+              _returnId: '1',
+              returnDate: '2016-11-01T08:01:19+0000',
+              items: [
+                {
+                  quantity: 4,
+                  lineItemId: '12ae',
+                  comment: 'yeah',
+                  shipmentState: 'shipped',
+                },
+                {
+                  quantity: 4,
+                  lineItemId: '12ae',
+                  comment: 'yeah',
+                  shipmentState: 'not-shipped',
+                },
+              ],
+            },
+            {
+              returnTrackingId: 'aefa34fe',
+              _returnId: '2',
+              returnDate: '2016-11-01T08:01:19+0000',
+              items: [{
+                quantity: 4,
+                lineItemId: '12ae',
+                comment: 'yeah',
+                shipmentState: 'not-shipped',
+              }],
+            },
+          ],
+        },
+        {
+          orderNumber: '124',
+          returnInfo: [{
+            returnTrackingId: 'aefa34fe',
+            _returnId: '2',
+            returnDate: '2016-11-01T08:01:19+0000',
+            items: [
+              {
+                quantity: 4,
+                lineItemId: '12ae',
+                comment: 'yeah',
+                shipmentState: 'not-shipped',
+              },
+            ],
+          }],
+        }]
+      t.false(error && stderr, 'returns no error')
+      t.deepEqual(
+        JSON.parse(stdout),
+        expectedOutput,
+        'CLI parses returninfo csv type'
+      )
+      t.end()
+    }
+  )
+})
+
 test('CLI writes output to file', (t) => {
   const csvPath = './test/helpers/lineitemstate-sample.csv'
   const output = tmp.fileSync().name

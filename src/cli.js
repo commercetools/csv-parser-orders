@@ -5,6 +5,7 @@ import yargs from 'yargs'
 
 import CONSTANTS from './constants'
 import LineItemStateCsvParser from './lineitemstate-csv-parser'
+import AddReturnInfoCsvParser from './add-return-info-csv-parser'
 import getApiCredentials from './get-api-credentials'
 import { version } from '../package.json'
 
@@ -30,7 +31,7 @@ Convert commercetools orders CSV data to JSON.`
   .version('version', 'Show version number.', () => version)
   .option('type', {
     alias: 't',
-    choices: ['lineitemstate'],
+    choices: ['lineitemstate', 'returninfo'],
     describe: 'Predefined type of csv',
     demand: true,
   })
@@ -119,29 +120,44 @@ const errorHandler = (error) => {
   log.error('', formattedError)
   process.exit(1)
 }
-
+const methodMapping = {
+  lineitemstate: apiCredentials => new LineItemStateCsvParser(
+    {
+      config: apiCredentials,
+      host: args.host,
+      protocol: args.protocol,
+      access_token: args.accessToken,
+    },
+    {
+      error: errorHandler,
+      warn: message => log.warn('', message),
+      info: message => log.info('', message),
+      verbose: message => log.verbose('', message),
+    },
+    {
+      delimiter: args.delimiter,
+    }
+  ),
+  returninfo: apiCredentials => new AddReturnInfoCsvParser(
+    {
+      config: apiCredentials,
+      host: args.host,
+      protocol: args.protocol,
+      access_token: args.accessToken,
+    },
+    {
+      error: errorHandler,
+      warn: message => log.warn('', message),
+      info: message => log.info('', message),
+      verbose: message => log.verbose('', message),
+    },
+    {
+      delimiter: args.delimiter,
+    }
+  ),
+}
 getApiCredentials(args.projectKey, args.accessToken)
-  .then((apiCredentials) => {
-    if (args.type === 'lineitemstate')
-      return new LineItemStateCsvParser(
-        {
-          config: apiCredentials,
-          host: args.host,
-          protocol: args.protocol,
-          access_token: args.accessToken,
-        },
-        {
-          error: errorHandler,
-          warn: message => log.warn('', message),
-          info: message => log.info('', message),
-          verbose: message => log.verbose('', message),
-        },
-        {
-          delimiter: args.delimiter,
-        }
-      )
-    return Promise.reject('Invalid csv type')
-  })
+  .then(apiCredentials => methodMapping[args.type](apiCredentials))
   .then((module) => {
     module.parse(args.inputFile, args.outputFile)
   })
