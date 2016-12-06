@@ -1,14 +1,20 @@
 import { SphereClient } from 'sphere-node-sdk'
+import { userAgent } from 'sphere-node-utils'
 import _ from 'underscore'
 import highland from 'highland'
 import JSONStream from 'JSONStream'
 import csv from 'csv-parser'
+import loadSelfPkg from 'load-pkg'
 import CONS from './constants'
 
 export default class LineItemStateCsvParser {
   constructor (apiClientConfig, logger, config = {}) {
+    const selfPkg = loadSelfPkg.sync(process.cwd())
     this.client = new SphereClient(
-      Object.assign(apiClientConfig, { user_agent: 'csv-parser-orders' })
+      Object.assign(
+        apiClientConfig,
+        { user_agent: userAgent('csv-parser-orders', selfPkg.version) }
+      )
     )
     this.logger = logger || {
       error: process.stderr,
@@ -43,6 +49,7 @@ export default class LineItemStateCsvParser {
       rowIndex += 1
     })
     .flatMap(highland)
+    .flatMap(data => highland(this.processData(data)))
     .pipe(JSONStream.stringify())
     .pipe(output)
   }
