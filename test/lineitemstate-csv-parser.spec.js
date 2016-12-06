@@ -101,8 +101,7 @@ test(`LineItemStateCsvParser::parse
     path.join(__dirname, 'helpers/lineitemstate-sample.csv')
   )
   const outputStream = StreamTest['v2'].toText((err, result) => {
-    const _result = JSON.parse(result)
-    t.equal(_result.length, 1, 'All rows in the csv is parsed')
+    t.equal(JSON.parse(result).length, 1, 'All rows in the csv is parsed')
     t.end()
   })
   lineItemStateCsvParser.parse(readStream, outputStream)

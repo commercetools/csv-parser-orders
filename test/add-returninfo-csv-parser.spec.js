@@ -102,8 +102,7 @@ test(`AddReturnInfoCsvParser::parse
     path.join(__dirname, 'helpers/return-info-sample.csv')
   )
   const outputStream = StreamTest['v2'].toText((err, result) => {
-    const _result = JSON.parse(result)
-    t.equal(_result.length, 2, 'All rows in the csv is parsed')
+    t.equal(JSON.parse(result).length, 2, 'All rows in the csv is parsed')
     t.notOk(err)
     t.end()
   })
