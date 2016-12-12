@@ -99,7 +99,7 @@
     "npmlog": "^4.0.1",
     "pretty-error": "^2.0.2",
     "sphere-node-sdk": "^1.16.1",
-    "sphere-node-utils": "^0.8.6",
+    "sphere-node-utils": "^0.9.1",
     "underscore": "^1.8.3",
     "underscore-mixins": "^0.1.4",
     "yargs": "^6.4.0"

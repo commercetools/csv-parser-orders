@@ -4,16 +4,15 @@ import _ from 'underscore'
 import highland from 'highland'
 import JSONStream from 'JSONStream'
 import csv from 'csv-parser'
-import loadSelfPkg from 'load-pkg'
 import CONS from './constants'
+import pkg from '../package.json'
 
 export default class LineItemStateCsvParser {
   constructor (apiClientConfig, logger, config = {}) {
-    const selfPkg = loadSelfPkg.sync(process.cwd())
     this.client = new SphereClient(
       Object.assign(
         apiClientConfig,
-        { user_agent: userAgent('csv-parser-orders', selfPkg.version) }
+        { user_agent: userAgent(pkg.name, pkg.version) }
       )
     )
     /* eslint-disable no-console */

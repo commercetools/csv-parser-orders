@@ -1,14 +1,20 @@
 import { SphereClient } from 'sphere-node-sdk'
+import { userAgent } from 'sphere-node-utils'
 import _ from 'underscore'
 import highland from 'highland'
 import JSONStream from 'JSONStream'
 import csv from 'csv-parser'
 import CONS from './constants'
 
+import pkg from '../package.json'
+
 export default class AddReturnInfoCsvParser {
   constructor (apiClientConfig, logger, config = {}) {
     this.client = new SphereClient(
-      Object.assign(apiClientConfig, { user_agent: 'csv-parser-orders' })
+      Object.assign(
+        apiClientConfig,
+        { user_agent: userAgent(pkg.name, pkg.version) }
+      )
     )
     /* eslint-disable no-console */
     this.logger = logger || {
