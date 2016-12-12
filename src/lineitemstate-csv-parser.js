@@ -16,12 +16,14 @@ export default class LineItemStateCsvParser {
         { user_agent: userAgent('csv-parser-orders', selfPkg.version) }
       )
     )
+    /* eslint-disable no-console */
     this.logger = logger || {
-      error: process.stderr,
-      warn: process.stderr,
-      info: process.stdout,
-      verbose: process.stdout,
+      error: console.error,
+      warn: console.warn,
+      info: console.log,
+      verbose: console.log,
     }
+    /* eslint-enable no-console */
 
     this.config = config
     this.batchSize =

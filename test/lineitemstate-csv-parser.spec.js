@@ -66,12 +66,14 @@ test(`LineItemStateCsvParser
   // logger
   t.deepEqual(
     lineItemStateCsvParser.logger,
+    /* eslint-disable no-console */
     {
-      error: process.stderr,
-      warn: process.stderr,
-      info: process.stdout,
-      verbose: process.stdout,
+      error: console.error,
+      warn: console.warn,
+      info: console.log,
+      verbose: console.log,
     },
+    /* eslint-enable no-console */
     'logger should be set to the standard value'
   )
   // config
