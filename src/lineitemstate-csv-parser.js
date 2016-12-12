@@ -35,7 +35,7 @@ export default class LineItemStateCsvParser {
   }
 
   parse (input, output) {
-    this.logger.verbose('Starting conversion')
+    this.logger.info('Starting LineItemState CSV conversion')
 
     let rowIndex = 1
 

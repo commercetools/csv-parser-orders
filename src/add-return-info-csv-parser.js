@@ -29,7 +29,7 @@ export default class AddReturnInfoCsvParser {
   }
 
   parse (input, output) {
-    this.logger.verbose('Starting conversion')
+    this.logger.info('Starting Return Info CSV conversion')
 
     let rowIndex = 1
 
