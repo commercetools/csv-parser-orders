@@ -57,7 +57,7 @@ Convert commercetools orders CSV data to JSON.`
       return fs.createWriteStream(String(arg))
 
     // No output file given, log to file to not disturb stdout/stderr
-    log.stream = fs.createWriteStream('csvparserprice.log')
+    log.stream = fs.createWriteStream('csvparserorders.log')
 
     return process.stdout
   })
