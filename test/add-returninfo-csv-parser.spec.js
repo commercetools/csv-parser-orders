@@ -14,13 +14,14 @@ if (process.env.CI === 'true')
 else
   PROJECT_KEY = process.env.npm_config_projectkey
 
+/* eslint-disable no-console */
 const logger = {
   error: console.error,
   warn: console.warn,
   info: console.log,
   verbose: () => {},
 }
-
+/* eslint-disable no-console */
 const apiClientConfig = {
   config: {
     project_key: PROJECT_KEY,
@@ -65,16 +66,18 @@ test(`AddReturnInfoCsvParser
   )
 
   // logger
+  /* eslint-disable no-console */
   t.deepEqual(
     addReturnInfo.logger,
     {
-      error: process.stderr,
-      warn: process.stderr,
-      info: process.stdout,
-      verbose: process.stdout,
+      error: console.error,
+      warn: console.warn,
+      info: console.log,
+      verbose: console.log,
     },
     'logger should be set to the standard value'
   )
+  /* eslint-disable no-console */
   // config
   t.equal(
     addReturnInfo.batchSize,
