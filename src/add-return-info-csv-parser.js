@@ -92,7 +92,7 @@ export default class AddReturnInfoCsvParser {
     .pipe(JSONStream.stringify(false))
     .pipe(output)
   }
-  // eslint-disable-next-line class-methods-use-this
+
   processData (data) {
     this.logger.verbose('Processing data to CTP format')
     const _data = _.clone(data)
