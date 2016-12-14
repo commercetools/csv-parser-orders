@@ -130,7 +130,6 @@ const methodMapping = {
     },
     {
       error: errorHandler,
-      warn: message => log.warn('', message),
       info: message => log.info('', message),
       verbose: message => log.verbose('', message),
     },
@@ -147,7 +146,6 @@ const methodMapping = {
     },
     {
       error: errorHandler,
-      warn: message => log.warn('', message),
       info: message => log.info('', message),
       verbose: message => log.verbose('', message),
     },
