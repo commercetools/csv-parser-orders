@@ -16,7 +16,10 @@
     "name": "Abimbola Idowu",
     "email": "abimbola.idowu@commercetools.de"
   },
-  "main": "",
+  "bin": {
+    "csvparserorders": "bin/csvparserorders.js"
+  },
+  "main": "lib/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/commercetools/csv-parser-orders.git"
