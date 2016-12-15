@@ -16,6 +16,7 @@
     "name": "Abimbola Idowu",
     "email": "abimbola.idowu@commercetools.de"
   },
+  "files": ["lib", "bin"],
   "bin": {
     "csvparserorders": "bin/csvparserorders.js"
   },

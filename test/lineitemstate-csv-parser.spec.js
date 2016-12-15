@@ -9,7 +9,7 @@ import CONSTANTS from '../src/constants'
 let PROJECT_KEY
 
 if (process.env.CI === 'true')
-  PROJECT_KEY = process.env.SPHERE_PROJECT_KEY
+  PROJECT_KEY = process.env.CT_PROJECT_KEY
 else
   PROJECT_KEY = process.env.npm_config_projectkey
 
