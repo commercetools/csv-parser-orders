@@ -73,9 +73,8 @@ export default class LineItemStateCsvParser {
       lineItems: [{
         state: [{
           quantity: parseInt(_data.quantity, 10),
-          state: {
-            id: _data.toState,
-          },
+          fromState: _data.fromState,
+          toState: _data.toState,
         }],
       }],
     }

@@ -40,9 +40,8 @@ test('CLI takes input from file', (t) => {
         lineItems: [{
           state: [{
             quantity: 10,
-            state: {
-              id: 'shipped',
-            },
+            fromState: 'order',
+            toState: 'shipped',
           }],
         }],
       }]
@@ -68,9 +67,8 @@ test('CLI accepts lineitemstate csv type', (t) => {
         lineItems: [{
           state: [{
             quantity: 10,
-            state: {
-              id: 'shipped',
-            },
+            fromState: 'order',
+            toState: 'shipped',
           }],
         }],
       }]
@@ -162,9 +160,8 @@ test('CLI writes output to file', (t) => {
     lineItems: [{
       state: [{
         quantity: 10,
-        state: {
-          id: 'shipped',
-        },
+        fromState: 'order',
+        toState: 'shipped',
       }],
     }],
   }]
