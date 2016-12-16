@@ -80,6 +80,21 @@ lineItemState.parse(
 
 Errors on the level `error` come from events that are fatal and thus stop the stream of data
 
+Data is exported in JSON in this format
+
+```json
+[{
+  "orderNumber": "234",
+  "lineItems": [{
+    "state": [{
+      "quantity": 10,
+      "fromState": "processing",
+      "toState": "shipped"
+    }]
+  }]
+}]
+```
+
 ## Configuration
 `CsvParserOrders` main methods accepts three objects as arguments:
 - API client config (_required_)
