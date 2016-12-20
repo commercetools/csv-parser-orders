@@ -71,6 +71,7 @@ export default class LineItemStateCsvParser {
     const result = {
       orderNumber: _data.orderNumber,
       lineItems: [{
+        id: _data.lineItemId,
         state: [{
           quantity: parseInt(_data.quantity, 10),
           fromState: _data.fromState,
