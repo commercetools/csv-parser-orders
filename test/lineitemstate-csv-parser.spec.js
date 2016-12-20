@@ -130,7 +130,12 @@ test(`LineItemStateCsvParser::processData
       'lineItem quantity is parsed'
     )
     t.equal(
-      result.lineItems[0].state[0].state.id,
+      result.lineItems[0].state[0].fromState,
+      mockOrder.fromState,
+      'lineItem state is parsed'
+    )
+    t.equal(
+      result.lineItems[0].state[0].toState,
       mockOrder.toState,
       'lineItem state is parsed'
     )
