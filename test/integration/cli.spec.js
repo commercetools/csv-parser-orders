@@ -38,6 +38,7 @@ test('CLI takes input from file', (t) => {
       const expectedOutput = [{
         orderNumber: '234',
         lineItems: [{
+          id: '123',
           state: [{
             quantity: 10,
             fromState: 'order',
@@ -65,6 +66,7 @@ test('CLI accepts lineitemstate csv type', (t) => {
       const expectedOutput = [{
         orderNumber: '234',
         lineItems: [{
+          id: '123',
           state: [{
             quantity: 10,
             fromState: 'order',
@@ -158,6 +160,7 @@ test('CLI writes output to file', (t) => {
   const expectedOutput = [{
     orderNumber: '234',
     lineItems: [{
+      id: '123',
       state: [{
         quantity: 10,
         fromState: 'order',
