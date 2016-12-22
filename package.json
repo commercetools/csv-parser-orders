@@ -1,6 +1,6 @@
 {
   "name": "@commercetools/csv-parser-orders",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Module that parses orders csv to json",
   "keywords": [
     "commercetools",
@@ -16,7 +16,10 @@
     "name": "Abimbola Idowu",
     "email": "abimbola.idowu@commercetools.de"
   },
-  "files": ["lib", "bin"],
+  "files": [
+    "lib",
+    "bin"
+  ],
   "bin": {
     "csvparserorders": "bin/csvparserorders.js"
   },
