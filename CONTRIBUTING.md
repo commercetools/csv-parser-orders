@@ -8,6 +8,8 @@ the developers managing and developing this open source project. In return,
 they should reciprocate that respect in addressing your issue or assessing
 patches and features.
 
+We now have a central repository for the sdk and our tools. Gradually, we will be migrating all our tools to the repository. Keep an eye on it [here](https://github.com/commercetools/nodejs)
+
 ## Setting Up a Local Copy
 1. Clone the repo with `git clone git@github.com:commercetools/csv-parser-orders.git`
 2. Run `npm install`
