@@ -43,6 +43,7 @@ test('CLI takes input from file', (t) => {
             quantity: 10,
             fromState: 'order',
             toState: 'shipped',
+            _fromStateQty: 100,
           }],
         }],
       }]
@@ -71,6 +72,7 @@ test('CLI accepts lineitemstate csv type', (t) => {
             quantity: 10,
             fromState: 'order',
             toState: 'shipped',
+            _fromStateQty: 100,
           }],
         }],
       }]
@@ -165,6 +167,7 @@ test('CLI writes output to file', (t) => {
         quantity: 10,
         fromState: 'order',
         toState: 'shipped',
+        _fromStateQty: 100,
       }],
     }],
   }]

@@ -67,16 +67,18 @@ export default class LineItemStateCsvParser {
       return Promise.reject(
         `Required headers missing: '${headerDiff.join(',')}'`
       )
-
+    const state = {
+      quantity: parseInt(_data.quantity, 10),
+      fromState: _data.fromState,
+      toState: _data.toState,
+    }
+    if (_data._fromStateQty)
+      state._fromStateQty = parseInt(_data._fromStateQty, 10)
     const result = {
       orderNumber: _data.orderNumber,
       lineItems: [{
         id: _data.lineItemId,
-        state: [{
-          quantity: parseInt(_data.quantity, 10),
-          fromState: _data.fromState,
-          toState: _data.toState,
-        }],
+        state: [state],
       }],
     }
     return Promise.resolve(result)
