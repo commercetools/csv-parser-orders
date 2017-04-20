@@ -105,6 +105,10 @@ Data is exported in JSON in this format
   - `delimiter`: the used CSV delimiter (_default_: `,`)
   - `strictMode`: whether to parse the CSV strictly (_default_: `true`)
 
+## Sample CSV format
+- [ReturnInfo](https://github.com/commercetools/csv-parser-orders/blob/master/test/helpers/return-info-sample.csv)
+- [LineItemState](https://github.com/commercetools/csv-parser-orders/blob/master/test/helpers/lineitemstate-sample.csv)
+
 ## Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md) for info on contributing to eslint-config
 
