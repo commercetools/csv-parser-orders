@@ -251,3 +251,66 @@ test('CLI should return error if invalid type is passed', (t) => {
     }
   )
 })
+
+test('CLI accepts deliveries csv type', (t) => {
+  const csvFilePath = './test/helpers/deliveries/delivery-simple.csv'
+
+  exec(
+    `${binPath} -p ${PROJECT_KEY} -t deliveries --inputFile ${csvFilePath}`,
+    (error, stdout, stderr) => {
+      const expectedOutput = [
+        {
+          id: '1',
+          items: [
+            {
+              _groupId: '101',
+              id: '1',
+              quantity: 100,
+            },
+          ],
+        },
+      ]
+      t.false(error && stderr, 'returns no error')
+      t.deepEqual(
+        JSON.parse(stdout),
+        expectedOutput,
+        'CLI parses delivery csv type'
+      )
+      t.end()
+    }
+  )
+})
+
+test('CLI should return error when invalid row is present', (t) => {
+  const csvFile = './test/helpers/deliveries/delivery-error-invalid-item.csv'
+
+  exec(
+    `${binPath} -p ${PROJECT_KEY} -i ${csvFile} -t deliveries`,
+    (error, stdout, stderr) => {
+      t.ok(error)
+      t.false(stdout, 'returns no stdout data')
+      t.true(
+        /which has different values across multiple rows/.test(stderr),
+        'CLI module returns an error when invalid row is given'
+      )
+      t.end()
+    }
+  )
+})
+
+test('CLI should return error when invalid row is present', (t) => {
+  const csvFile = './test/helpers/deliveries/parcel-error-invalid-item.csv'
+
+  exec(
+    `${binPath} -p ${PROJECT_KEY} -i ${csvFile} -t deliveries`,
+    (error, stdout, stderr) => {
+      t.ok(error)
+      t.false(stdout, 'returns no stdout data')
+      t.true(
+        /which has different values across multiple rows/.test(stderr),
+        'CLI module returns an error when invalid row is given'
+      )
+      t.end()
+    }
+  )
+})

@@ -130,9 +130,9 @@ export default class AddReturnInfoCsvParser {
     const headerDiff = _.difference(CONS.requiredHeaders.deliveries, csvHeaders)
 
     if (headerDiff.length)
-      return Promise.reject(
+      return Promise.reject(new Error(
         `Required headers missing: '${headerDiff.join(',')}'`
-      )
+      ))
 
     /**
      * Sample delivery object that the API supports

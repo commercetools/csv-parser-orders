@@ -118,10 +118,8 @@ const errorHandler = (error) => {
   let formattedError
   if (log.level === 'verbose')
     formattedError = errorFormatter.render(error)
-  else if (error.message)
-    formattedError = error.message
   else
-    formattedError = error
+    formattedError = error.message
 
   process.stderr.write(formattedError)
   process.stderr.write('\n')
