@@ -1,0 +1,6 @@
+delivery.id,itemGroupId,item.id,item.quantity,parcel.id,parcel.length,parcel.height,parcel.width,parcel.weight,parcel.trackingId,parcel.carrier,parcel.provider,parcel.providerTransaction,parcel.isReturn
+1,202,5,457
+1,202,5,456
+
+
+
