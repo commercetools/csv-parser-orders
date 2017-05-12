@@ -15,6 +15,12 @@ const CONSTANTS = {
       'shipmentState',
       '_returnId',
     ],
+    deliveries: [
+      'delivery.id',
+      'itemGroupId',
+      'item.id',
+      'item.quantity',
+    ],
   },
   standardOption: {
     batchSize: 100,

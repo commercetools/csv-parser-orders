@@ -6,6 +6,7 @@ import yargs from 'yargs'
 import CONSTANTS from './constants'
 import LineItemStateCsvParser from './lineitemstate-csv-parser'
 import AddReturnInfoCsvParser from './add-return-info-csv-parser'
+import DeliveriesCsvParser from './deliveries-csv-parser'
 import getApiCredentials from './get-api-credentials'
 import { version } from '../package.json'
 
@@ -31,7 +32,7 @@ Convert commercetools orders CSV data to JSON.`
   .version('version', 'Show version number.', () => version)
   .option('type', {
     alias: 't',
-    choices: ['lineitemstate', 'returninfo'],
+    choices: ['lineitemstate', 'returninfo', 'deliveries'],
     describe: 'Predefined type of csv',
     demand: true,
   })
@@ -99,12 +100,17 @@ Convert commercetools orders CSV data to JSON.`
   })
 
   .option('logLevel', {
+    alias: 'l',
     default: 'info',
     describe: 'Logging level: error, warn, info or verbose.',
   })
   .coerce('logLevel', (arg) => {
     log.level = arg
   })
+  .demandOption(
+    ['projectKey', 'type'],
+    'Please provide both projectKey and type arguments.'
+  )
   .argv
 
 const errorHandler = (error) => {
@@ -112,50 +118,49 @@ const errorHandler = (error) => {
   let formattedError
   if (log.level === 'verbose')
     formattedError = errorFormatter.render(error)
-  else
+  else if (error.message)
     formattedError = error.message
+  else
+    formattedError = error
 
   process.stderr.write(formattedError)
   process.stderr.write('\n')
   log.error('', formattedError)
   process.exit(1)
 }
+
+const loggerConf = {
+  error: errorHandler,
+  info: message => log.info('', message),
+  verbose: message => log.verbose('', message),
+}
+
+const csvConf = {
+  delimiter: args.delimiter,
+}
+
 const methodMapping = {
-  lineitemstate: apiCredentials => new LineItemStateCsvParser(
-    {
-      config: apiCredentials,
-      host: args.host,
-      protocol: args.protocol,
-      access_token: args.accessToken,
-    },
-    {
-      error: errorHandler,
-      info: message => log.info('', message),
-      verbose: message => log.verbose('', message),
-    },
-    {
-      delimiter: args.delimiter,
-    }
+  lineitemstate: apiConf => new LineItemStateCsvParser(
+    apiConf, loggerConf, csvConf
   ),
-  returninfo: apiCredentials => new AddReturnInfoCsvParser(
-    {
-      config: apiCredentials,
-      host: args.host,
-      protocol: args.protocol,
-      access_token: args.accessToken,
-    },
-    {
-      error: errorHandler,
-      info: message => log.info('', message),
-      verbose: message => log.verbose('', message),
-    },
-    {
-      delimiter: args.delimiter,
-    }
+  returninfo: apiConf => new AddReturnInfoCsvParser(
+    apiConf, loggerConf, csvConf
+  ),
+  deliveries: () => new DeliveriesCsvParser(
+    loggerConf, csvConf
   ),
 }
 getApiCredentials(args.projectKey, args.accessToken)
-  .then(apiCredentials => methodMapping[args.type](apiCredentials))
+  .then((apiCredentials) => {
+    const apiConf = {
+      config: apiCredentials,
+      host: args.host,
+      protocol: args.protocol,
+      access_token: args.accessToken,
+    }
+
+    return methodMapping[args.type](apiConf)
+  })
   .then((module) => {
     module.parse(args.inputFile, args.outputFile)
   })

@@ -9,9 +9,11 @@
 Convert [commercetools orders](http://dev.commercetools.com/http-api-projects-orders.html) CSV data to JSON
 
 This module is [_update actions_](http://dev.commercetools.com/http-api-projects-orders.html#update-actions) based.
-Update actions currently supported is:
+Update actions currently supported are:
 - [Add ReturnInfo](http://dev.commercetools.com/http-api-projects-orders.html#add-returninfo)
 - [Change the state of LineItem according to allowed transitions](http://dev.commercetools.com/http-api-projects-orders.html#change-the-state-of-lineitem-according-to-allowed-transitions)
+- [Add deliveries](https://dev.commercetools.com/http-api-projects-orders.html#add-delivery)
+- [Add parcel to delivery](https://dev.commercetools.com/http-api-projects-orders.html#add-parcel)
 
 ## Usage
 
@@ -94,6 +96,65 @@ Data is exported in JSON in this format
   }]
 }]
 ```
+
+## CSV format
+
+### Deliveries
+CSV file with deliveries have following format:
+```csv
+delivery.id,itemGroupId,item.id,item.quantity,parcel.id,parcel.length,parcel.height,parcel.width,parcel.weight,parcel.trackingId,parcel.carrier,parcel.provider,parcel.providerTransaction,parcel.isReturn
+1,1,123,1,1,100,200,200,500,123456789,DHL,provider,transaction provider,0
+1,2,222,3,1,100,200,200,500,123456789,DHL,provider,transaction provider,0
+1,1,123,1,2,100,200,200,,2222222,,abcd,dcba,
+```
+Where CSV fields `delivery.id, itemGroupId, item.id, item.quantity` are mandatory because every delivery has to have at least one delivery item. Because an API allows to save multiple delivery items with same `id` and `quantity` there is `_groupId` which helps us to distinguish different delivery items.
+
+Example provided above will be parsed into following JSON:
+```json
+[{
+	"id": "1",
+	"items": [{
+		"_groupId": "1",
+		"id": "123",
+		"quantity": 1
+	},
+	{
+        "_groupId": "2",
+        "id": "222",
+        "quantity": 3
+    }],
+	"parcels": [{
+		"id": "1",
+		"measurements": {
+			"lengthInMillimeter": 100,
+			"heightInMillimeter": 200,
+			"widthInMillimeter": 200,
+			"weightInGram": 500
+		},
+		"trackingData": {
+			"trackingId": "123456789",
+			"carrier": "DHL",
+			"provider": "transaction provider",
+			"providerTransaction": "provider",
+			"isReturn": false
+		}
+	}, {
+		"id": "2",
+		"measurements": {
+			"lengthInMillimeter": 100,
+			"heightInMillimeter": 200,
+			"widthInMillimeter": 200
+		},
+		"trackingData": {
+			"trackingId": "2222222",
+			"provider": "abcd",
+			"providerTransaction": "dcba"
+		}
+	}]
+}]
+```
+
+More delivery examples can be seen [here](test/helpers/deliveries).
 
 ## Configuration
 `CsvParserOrders` main methods accepts three objects as arguments:
