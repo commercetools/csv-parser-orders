@@ -84,7 +84,6 @@ Convert commercetools orders CSV data to JSON.`
   .option('projectKey', {
     alias: 'p',
     describe: 'API project key.',
-    demand: true,
   })
 
   .option('host', {
@@ -148,17 +147,24 @@ const methodMapping = {
     loggerConf, csvConf
   ),
 }
-getApiCredentials(args.projectKey, args.accessToken)
-  .then((apiCredentials) => {
-    const apiConf = {
-      config: apiCredentials,
-      host: args.host,
-      protocol: args.protocol,
-      access_token: args.accessToken,
-    }
 
-    return methodMapping[args.type](apiConf)
-  })
-  .then((module) => {
-    module.parse(args.inputFile, args.outputFile)
-  })
+let parserPromise
+// deliveries does not need projectKey
+if (args.type === 'deliveries')
+  parserPromise = Promise.resolve(methodMapping[args.type]())
+else
+  parserPromise = getApiCredentials(args.projectKey, args.accessToken)
+    .then((apiCredentials) => {
+      const apiConf = {
+        config: apiCredentials,
+        host: args.host,
+        protocol: args.protocol,
+        access_token: args.accessToken,
+      }
+
+      return methodMapping[args.type](apiConf)
+    })
+
+parserPromise
+  .then(module => module.parse(args.inputFile, args.outputFile))
+  .catch(errorHandler)

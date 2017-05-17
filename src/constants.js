@@ -17,7 +17,7 @@ const CONSTANTS = {
     ],
     deliveries: [
       'delivery.id',
-      'itemGroupId',
+      '_itemGroupId',
       'item.id',
       'item.quantity',
     ],

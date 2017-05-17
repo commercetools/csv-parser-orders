@@ -100,26 +100,26 @@ Data is exported in JSON in this format
 ## CSV format
 
 ### Deliveries
-CSV file with deliveries have following format:
+CSV file with deliveries have the following format:
 ```csv
-delivery.id,itemGroupId,item.id,item.quantity,parcel.id,parcel.length,parcel.height,parcel.width,parcel.weight,parcel.trackingId,parcel.carrier,parcel.provider,parcel.providerTransaction,parcel.isReturn
+delivery.id,_itemGroupId,item.id,item.quantity,parcel.id,parcel.length,parcel.height,parcel.width,parcel.weight,parcel.trackingId,parcel.carrier,parcel.provider,parcel.providerTransaction,parcel.isReturn
 1,1,123,1,1,100,200,200,500,123456789,DHL,provider,transaction provider,0
 1,2,222,3,1,100,200,200,500,123456789,DHL,provider,transaction provider,0
-1,1,123,1,2,100,200,200,,2222222,,abcd,dcba,
+1,1,123,1,2,100,200,200,,2222222,,abcd,dcba,true
 ```
-Where CSV fields `delivery.id, itemGroupId, item.id, item.quantity` are mandatory because every delivery has to have at least one delivery item. Because an API allows to save multiple delivery items with same `id` and `quantity` there is `_groupId` which helps us to distinguish different delivery items.
+Where CSV fields `delivery.id, _itemGroupId, item.id, item.quantity` are mandatory because every delivery has to have at least one delivery item.
+
+Because an API allows us to save multiple delivery items with same `id` and `quantity` there is `_itemGroupId` field which helps us to distinguish different delivery items. This field has to have a unique value for different delivery items (in example above CSV rows 2 and 3 belongs to one delivery which has 2 delivery items - two different _itemGroupIds).
 
 Example provided above will be parsed into following JSON:
 ```json
 [{
 	"id": "1",
 	"items": [{
-		"_groupId": "1",
 		"id": "123",
 		"quantity": 1
 	},
 	{
-        "_groupId": "2",
         "id": "222",
         "quantity": 3
     }],
@@ -148,7 +148,8 @@ Example provided above will be parsed into following JSON:
 		"trackingData": {
 			"trackingId": "2222222",
 			"provider": "abcd",
-			"providerTransaction": "dcba"
+			"providerTransaction": "dcba",
+			"isReturn": true
 		}
 	}]
 }]

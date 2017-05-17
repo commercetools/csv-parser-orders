@@ -256,14 +256,13 @@ test('CLI accepts deliveries csv type', (t) => {
   const csvFilePath = './test/helpers/deliveries/delivery-simple.csv'
 
   exec(
-    `${binPath} -p ${PROJECT_KEY} -t deliveries --inputFile ${csvFilePath}`,
+    `${binPath} -t deliveries --inputFile ${csvFilePath}`,
     (error, stdout, stderr) => {
       const expectedOutput = [
         {
           id: '1',
           items: [
             {
-              _groupId: '101',
               id: '1',
               quantity: 100,
             },
@@ -285,7 +284,7 @@ test('CLI should return error when invalid row is present', (t) => {
   const csvFile = './test/helpers/deliveries/delivery-error-invalid-item.csv'
 
   exec(
-    `${binPath} -p ${PROJECT_KEY} -i ${csvFile} -t deliveries`,
+    `${binPath} -i ${csvFile} -t deliveries`,
     (error, stdout, stderr) => {
       t.ok(error)
       t.false(stdout, 'returns no stdout data')
@@ -302,13 +301,33 @@ test('CLI should return error when invalid row is present', (t) => {
   const csvFile = './test/helpers/deliveries/parcel-error-invalid-item.csv'
 
   exec(
-    `${binPath} -p ${PROJECT_KEY} -i ${csvFile} -t deliveries`,
+    `${binPath} -i ${csvFile} -t deliveries`,
     (error, stdout, stderr) => {
       t.ok(error)
       t.false(stdout, 'returns no stdout data')
       t.true(
         /which has different values across multiple rows/.test(stderr),
         'CLI module returns an error when invalid row is given'
+      )
+      t.end()
+    }
+  )
+})
+
+test('CLI should return error when projectKey is missing', (t) => {
+  const csvFile = './test/helpers/faulty-sample.csv'
+  const type = 'lineitemstate'
+  const logLevel = 'verbose'
+
+  exec(
+    // eslint-disable-next-line
+    `${binPath} -i ${csvFile} -t ${type} --logLevel ${logLevel}`,
+    (error, stdout, stderr) => {
+      t.ok(error)
+      t.false(stdout, 'returns no stdout data')
+      t.true(
+        /Project Key is needed/.test(stderr),
+        'CLI module returns an error when a projectKey is missing'
       )
       t.end()
     }

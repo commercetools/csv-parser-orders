@@ -119,7 +119,7 @@ test(`DeliveriesCsvParser::processData
   )
   const mockDelivery = {
     'delivery.id': '1',
-    itemGroupId: '1',
+    _itemGroupId: '1',
     'item.id': '123',
     'item.quantity': '1',
     'parcel.id': '1',
@@ -223,7 +223,7 @@ test(`DeliveriesCsvParser::parse
     logger
   )
   const readStream = fs.createReadStream(
-    path.join(__dirname, deliveriesTestFolder, 'parcel.csv')
+    path.join(__dirname, deliveriesTestFolder, 'delivery-with-parcel.csv')
   )
   const outputStream = StreamTest['v2'].toText((err, _result) => {
     const result = JSON.parse(_result)
@@ -268,7 +268,7 @@ test(`DeliveriesCsvParser::parse
 
     t.equal(
       parcel.trackingData.isReturn,
-      undefined,
+      true,
       'Second parcel should not have isReturn field'
     )
 
@@ -293,10 +293,10 @@ test(`DeliveriesCsvParser::parse
       {
         id: '1',
         items: [
-          { _groupId: '1', id: '123', quantity: 1 },
-          { _groupId: '2', id: '345', quantity: 10 },
-          { _groupId: '3', id: '678', quantity: 90 },
-          { _groupId: '4', id: '908', quantity: 100 },
+          { id: '123', quantity: 1 },
+          { id: '345', quantity: 10 },
+          { id: '678', quantity: 90 },
+          { id: '908', quantity: 100 },
         ],
         parcels: [
           {
@@ -334,7 +334,7 @@ test(`DeliveriesCsvParser::parse
       {
         id: '2',
         items: [
-          { _groupId: '2', id: '345', quantity: 10 },
+          { id: '345', quantity: 10 },
         ],
         parcels: [
           {

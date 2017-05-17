@@ -5,7 +5,7 @@ import JSONStream from 'JSONStream'
 import csv from 'csv-parser'
 import CONS from './constants'
 
-export default class AddReturnInfoCsvParser {
+export default class DeliveriesCsvParser {
   constructor (logger, config = {}) {
     /* eslint-disable no-console */
     this.logger = logger || {
@@ -20,7 +20,7 @@ export default class AddReturnInfoCsvParser {
   }
 
   parse (input, output) {
-    this.logger.info('Starting Return Info CSV conversion')
+    this.logger.info('Starting Deliveries CSV conversion')
 
     let rowIndex = 1
 
@@ -36,46 +36,127 @@ export default class AddReturnInfoCsvParser {
         rowIndex += 1
       })
       .flatMap(highland)
-      .flatMap(data => highland(this.processData(data, rowIndex)))
+      .flatMap(data => highland(this.processData(data)))
       .stopOnError(error => this.logger.error(error))
       .doto(data => this.logger.verbose(
         `Converted row${rowIndex}: ${JSON.stringify(data)}`
       ))
-      .reduce([], (results, newDelivery) => {
-        /*
-         Reduce deliveries by delivery.id
-         1. Group all delivery items by itemGroupId
-         2. Group all parcel items by parcel.id
-         */
-
-        // if newDelivery is the first record, just push it to the results
-        if (!results.length)
-          return [newDelivery]
-
-        // find newDelivery in results using its id
-        const existingDelivery = results.find(
-          delivery => delivery.id === newDelivery.id
-        )
-
-        // if this delivery is not yet in results array, insert it
-        if (!existingDelivery)
-          results.push(newDelivery)
-        else {
-          AddReturnInfoCsvParser._mergeDeliveryItems(
-            existingDelivery.items, newDelivery.items[0], existingDelivery)
-
-          // if delivery have parcels, merge them
-          if (newDelivery.parcels)
-            AddReturnInfoCsvParser._mergeDeliveryParcels(
-              existingDelivery.parcels, newDelivery.parcels[0], existingDelivery
-            )
-        }
-
-        return results
-      })
+      .reduce([], DeliveriesCsvParser._groupByDeliveryId)
       .stopOnError(error => this.logger.error(error))
+      .flatMap(data => highland(DeliveriesCsvParser._cleanDelivery(data)))
       .pipe(JSONStream.stringify(false))
       .pipe(output)
+  }
+
+  // take objectized CSV row and create a delivery object from it
+  processData (data) {
+    this.logger.verbose('Processing data to CTP format')
+    const csvHeaders = Object.keys(data)
+    const headerDiff = _.difference(CONS.requiredHeaders.deliveries, csvHeaders)
+
+    if (headerDiff.length)
+      return Promise.reject(new Error(
+        `Required headers missing: '${headerDiff.join(',')}'`
+      ))
+
+    /**
+     * Sample delivery object that the API supports
+     * {
+     *   "id": string,
+     *   "createdAt": DateTime,
+     *   "items": [
+     *     {
+     *       "id": string,
+     *       "quantity": number
+     *     }
+     *   ],
+     *   "parcels": [
+     *     {
+     *       "id": string,
+     *       "createdAt": DateTime,
+     *       "measurements": {
+     *         "heightInMillimeter": Number,
+     *         "lengthInMillimeter": Number,
+     *         "widthInMillimeter": Number,
+     *         "weightInGram": Number
+     *       }
+     *       "trackingData": {
+     *         "trackingId": string,
+     *         "provider": string,
+     *         "providerTransaction": string,
+     *         "carrier": string,
+     *         "isReturn": boolean
+     *       }
+     *     }
+     *   ]
+     * }
+     */
+
+    // Basic delivery object with delivery item
+    const result = {
+      id: data['delivery.id'],
+      items: [
+        {
+          // there can be multiple delivery items with same item.id and
+          // item.quantity therefore we use unique identifier _itemGroupId
+          _groupId: data['_itemGroupId'],
+          id: data['item.id'],
+          quantity: parseInt(data['item.quantity'], 10),
+        },
+      ],
+    }
+
+    // Add parcel info if it is present
+    if (data['parcel.id'])
+      result.parcels = [DeliveriesCsvParser._parseParcelInfo(data)]
+
+    return Promise.resolve(result)
+  }
+
+  // remove internal properties
+  static _cleanDelivery (deliveries) {
+    deliveries.forEach(delivery =>
+      delivery.items.forEach((item) => {
+        // eslint-disable-next-line no-param-reassign
+        delete item._groupId
+      })
+    )
+    return [deliveries]
+  }
+
+  // will merge newDelivery with deliveries in results array
+  static _groupByDeliveryId (results, newDelivery) {
+    /*
+     Reduce deliveries by delivery.id
+     1. Group all delivery items by _itemGroupId
+     2. Group all parcel items by parcel.id
+     */
+
+    // if newDelivery is the first record, just push it to the results
+    if (!results.length)
+      return [newDelivery]
+
+    // find newDelivery in results using its id
+    const existingDelivery = results.find(
+      delivery => delivery.id === newDelivery.id
+    )
+
+    // if this delivery is not yet in results array, insert it
+    if (!existingDelivery)
+      results.push(newDelivery)
+    else {
+      DeliveriesCsvParser._mergeDeliveryItems(
+        existingDelivery.items, newDelivery.items[0], existingDelivery
+      )
+
+      // if delivery have parcels, merge them
+      if (newDelivery.parcels)
+        DeliveriesCsvParser._mergeDeliveryParcels(
+          existingDelivery.parcels, newDelivery.parcels[0], existingDelivery
+        )
+    }
+
+    return results
   }
 
   // merge delivery parcels to one array based on parcel.id field
@@ -123,69 +204,6 @@ export default class AddReturnInfoCsvParser {
     return allItems
   }
 
-  // take objectized CSV row and create a delivery object from it
-  processData (data) {
-    this.logger.verbose('Processing data to CTP format')
-    const csvHeaders = _.keys(data)
-    const headerDiff = _.difference(CONS.requiredHeaders.deliveries, csvHeaders)
-
-    if (headerDiff.length)
-      return Promise.reject(new Error(
-        `Required headers missing: '${headerDiff.join(',')}'`
-      ))
-
-    /**
-     * Sample delivery object that the API supports
-     * {
-     *   "id": string,
-     *   "createdAt": DateTime,
-     *   "items": [
-     *     {
-     *       "id": string,
-     *       "quantity": number
-     *     }
-     *   ],
-     *   "parcels": [
-     *     {
-     *       "id": string,
-     *       "createdAt": DateTime,
-     *       "measurements": {
-     *         "heightInMillimeter": Number,
-     *         "lengthInMillimeter": Number,
-     *         "widthInMillimeter": Number,
-     *         "weightInGram": Number
-     *       }
-     *       "trackingData": {
-     *         "trackingId": string,
-     *         "provider": string,
-     *         "providerTransaction": string,
-     *         "carrier": string,
-     *         "isReturn": boolean
-     *       }
-     *     }
-     *   ]
-     * }
-     */
-
-    // Basic delivery object with delivery item
-    const result = {
-      id: data['delivery.id'],
-      items: [
-        {
-          _groupId: data['itemGroupId'],
-          id: data['item.id'],
-          quantity: parseInt(data['item.quantity'], 10),
-        },
-      ],
-    }
-
-    // Add parcel info if it is present
-    if (data['parcel.id'])
-      result.parcels = [AddReturnInfoCsvParser._parseParcelInfo(data)]
-
-    return Promise.resolve(result)
-  }
-
   static _parseParcelInfo (data) {
     const transitionMap = {
       'parcel.height': 'measurements.heightInMillimeter',
@@ -221,7 +239,7 @@ export default class AddReturnInfoCsvParser {
 
       // Cast isReturn field to Boolean
       if (fieldName === 'parcel.isReturn')
-        fieldValue = fieldValue === '1'
+        fieldValue = fieldValue === '1' || fieldValue.toLowerCase() === 'true'
 
       objectPath.set(parcel, transitionMap[fieldName], fieldValue)
     })
