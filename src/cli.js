@@ -108,8 +108,8 @@ Convert commercetools orders CSV data to JSON.`
     log.level = arg
   })
   .demandOption(
-    ['projectKey', 'type'],
-    'Please provide both projectKey and type arguments.'
+    ['type'],
+    'Please provide type argument.'
   )
   .argv
 
