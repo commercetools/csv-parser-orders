@@ -43,12 +43,12 @@ export default class DeliveriesCsvParser {
       ))
       .reduce([], DeliveriesCsvParser._groupByDeliveryId)
       .stopOnError(error => this.logger.error(error))
-      .flatMap(data => highland(DeliveriesCsvParser._cleanDelivery(data)))
+      .flatMap(data => highland(DeliveriesCsvParser._cleanOrders(data)))
       .pipe(JSONStream.stringify(false))
       .pipe(output)
   }
 
-  // take objectized CSV row and create a delivery object from it
+  // Take objectized CSV row and create an order object from it
   processData (data) {
     this.logger.verbose('Processing data to CTP format')
     const csvHeaders = Object.keys(data)
@@ -62,17 +62,17 @@ export default class DeliveriesCsvParser {
     /**
      * Sample delivery object that the API supports
      * {
-     *   "id": string,
+     *   "id": String,
      *   "createdAt": DateTime,
      *   "items": [
      *     {
-     *       "id": string,
-     *       "quantity": number
+     *       "id": String,
+     *       "quantity": Number
      *     }
      *   ],
      *   "parcels": [
      *     {
-     *       "id": string,
+     *       "id": String,
      *       "createdAt": DateTime,
      *       "measurements": {
      *         "heightInMillimeter": Number,
@@ -81,19 +81,31 @@ export default class DeliveriesCsvParser {
      *         "weightInGram": Number
      *       }
      *       "trackingData": {
-     *         "trackingId": string,
-     *         "provider": string,
-     *         "providerTransaction": string,
-     *         "carrier": string,
-     *         "isReturn": boolean
+     *         "trackingId": String,
+     *         "provider": String,
+     *         "providerTransaction": String,
+     *         "carrier": String,
+     *         "isReturn": Boolean
      *       }
      *     }
      *   ]
      * }
      */
 
-    // Basic delivery object with delivery item
-    const result = {
+    /**
+     * Sample result - order object with shippingInfo.deliveries
+     * {
+     *   "orderNumber": String
+     *   "shippingInfo": {
+     *     "deliveries": [
+     *       ...
+     *     ]
+     *   }
+     * }
+     */
+
+     // Basic delivery object with delivery item
+    const delivery = {
       id: data['delivery.id'],
       items: [
         {
@@ -108,52 +120,73 @@ export default class DeliveriesCsvParser {
 
     // Add parcel info if it is present
     if (data['parcel.id'])
-      result.parcels = [DeliveriesCsvParser._parseParcelInfo(data)]
+      delivery.parcels = [DeliveriesCsvParser._parseParcelInfo(data)]
 
-    return Promise.resolve(result)
+    const order = {
+      orderNumber: data['orderNumber'],
+      shippingInfo: {
+        deliveries: [delivery],
+      },
+    }
+    return Promise.resolve(order)
   }
 
   // remove internal properties
-  static _cleanDelivery (deliveries) {
-    deliveries.forEach(delivery =>
-      delivery.items.forEach((item) => {
-        // eslint-disable-next-line no-param-reassign
-        delete item._groupId
-      })
+  static _cleanOrders (orders) {
+    orders.forEach(order =>
+      order.shippingInfo.deliveries.forEach(delivery =>
+        delivery.items.forEach((item) => {
+          // eslint-disable-next-line no-param-reassign
+          delete item._groupId
+        })
+      )
     )
-    return [deliveries]
+    return [orders]
   }
 
-  // will merge newDelivery with deliveries in results array
-  static _groupByDeliveryId (results, newDelivery) {
+  // Will merge newOrder with orders in results array
+  static _groupByDeliveryId (results, newOrder) {
     /*
-     Reduce deliveries by delivery.id
+     Merge orders in following steps:
+     1. Group all orders by orderNumber
      1. Group all delivery items by _itemGroupId
      2. Group all parcel items by parcel.id
      */
 
-    // if newDelivery is the first record, just push it to the results
+    // if newOrder is the first record, just push it to the results
     if (!results.length)
-      return [newDelivery]
+      return [newOrder]
 
-    // find newDelivery in results using its id
-    const existingDelivery = results.find(
-      delivery => delivery.id === newDelivery.id
+    // find newOrder in results using its orderNumber
+    const existingOrder = results.find(
+      order => order.orderNumber === newOrder.orderNumber
     )
 
-    // if this delivery is not yet in results array, insert it
-    if (!existingDelivery)
-      results.push(newDelivery)
+    if (!existingOrder)
+      results.push(newOrder)
     else {
-      DeliveriesCsvParser._mergeDeliveryItems(
-        existingDelivery.items, newDelivery.items[0], existingDelivery
+      const oldDeliveries = existingOrder.shippingInfo.deliveries
+      const newDelivery = newOrder.shippingInfo.deliveries[0]
+
+      // find newDelivery in results using its id
+      const existingDelivery = oldDeliveries.find(
+        delivery => delivery.id === newDelivery.id
       )
 
-      // if delivery have parcels, merge them
-      if (newDelivery.parcels)
-        DeliveriesCsvParser._mergeDeliveryParcels(
-          existingDelivery.parcels, newDelivery.parcels[0], existingDelivery
+      // if this delivery is not yet in results array, insert it
+      if (!existingDelivery)
+        oldDeliveries.push(newDelivery)
+      else {
+        DeliveriesCsvParser._mergeDeliveryItems(
+          existingDelivery.items, newDelivery.items[0], existingDelivery
         )
+
+        // if delivery have parcels, merge them
+        if (newDelivery.parcels)
+          DeliveriesCsvParser._mergeDeliveryParcels(
+            existingDelivery.parcels, newDelivery.parcels[0], existingDelivery
+          )
+      }
     }
 
     return results

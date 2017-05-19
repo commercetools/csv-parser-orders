@@ -16,6 +16,7 @@ const CONSTANTS = {
       '_returnId',
     ],
     deliveries: [
+      'orderNumber',
       'delivery.id',
       '_itemGroupId',
       'item.id',

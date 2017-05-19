@@ -258,17 +258,23 @@ test('CLI accepts deliveries csv type', (t) => {
   exec(
     `${binPath} -t deliveries --inputFile ${csvFilePath}`,
     (error, stdout, stderr) => {
-      const expectedOutput = [
-        {
-          id: '1',
-          items: [
+      const expectedOutput = [{
+        orderNumber: '222',
+        shippingInfo: {
+          deliveries: [
             {
               id: '1',
-              quantity: 100,
+              items: [
+                {
+                  id: '1',
+                  quantity: 100,
+                },
+              ],
             },
           ],
         },
-      ]
+      }]
+
       t.false(error && stderr, 'returns no error')
       t.deepEqual(
         JSON.parse(stdout),

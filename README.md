@@ -102,56 +102,62 @@ Data is exported in JSON in this format
 ### Deliveries
 CSV file with deliveries have the following format:
 ```csv
-delivery.id,_itemGroupId,item.id,item.quantity,parcel.id,parcel.length,parcel.height,parcel.width,parcel.weight,parcel.trackingId,parcel.carrier,parcel.provider,parcel.providerTransaction,parcel.isReturn
-1,1,123,1,1,100,200,200,500,123456789,DHL,provider,transaction provider,0
-1,2,222,3,1,100,200,200,500,123456789,DHL,provider,transaction provider,0
-1,1,123,1,2,100,200,200,,2222222,,abcd,dcba,true
+orderNumber,delivery.id,_itemGroupId,item.id,item.quantity,parcel.id,parcel.length,parcel.height,parcel.width,parcel.weight,parcel.trackingId,parcel.carrier,parcel.provider,parcel.providerTransaction,parcel.isReturn
+111,1,1,123,1,1,100,200,200,500,123456789,DHL,provider,transaction provider,0
+111,1,2,222,3,1,100,200,200,500,123456789,DHL,provider,transaction provider,0
+111,1,1,123,1,2,100,200,200,,2222222,,abcd,dcba,true
 ```
-Where CSV fields `delivery.id, _itemGroupId, item.id, item.quantity` are mandatory because every delivery has to have at least one delivery item.
+Where CSV fields `orderNumber, delivery.id, _itemGroupId, item.id, item.quantity` are mandatory because every delivery has to have at least one delivery item.
 
 Because an API allows us to save multiple delivery items with same `id` and `quantity` there is `_itemGroupId` field which helps us to distinguish different delivery items. This field has to have a unique value for different delivery items (in example above CSV rows 2 and 3 belongs to one delivery which has 2 delivery items - two different _itemGroupIds).
 
 Example provided above will be parsed into following JSON:
 ```json
 [{
-	"id": "1",
-	"items": [{
-		"id": "123",
-		"quantity": 1
-	},
-	{
-        "id": "222",
-        "quantity": 3
-    }],
-	"parcels": [{
-		"id": "1",
-		"measurements": {
-			"lengthInMillimeter": 100,
-			"heightInMillimeter": 200,
-			"widthInMillimeter": 200,
-			"weightInGram": 500
-		},
-		"trackingData": {
-			"trackingId": "123456789",
-			"carrier": "DHL",
-			"provider": "transaction provider",
-			"providerTransaction": "provider",
-			"isReturn": false
-		}
-	}, {
-		"id": "2",
-		"measurements": {
-			"lengthInMillimeter": 100,
-			"heightInMillimeter": 200,
-			"widthInMillimeter": 200
-		},
-		"trackingData": {
-			"trackingId": "2222222",
-			"provider": "abcd",
-			"providerTransaction": "dcba",
-			"isReturn": true
-		}
-	}]
+    "orderNumber": "111",
+    "shippingInfo": {
+        "deliveries": [{
+            "id": "1",
+            "items": [{
+                "id": "123",
+                "quantity": 1
+            },
+            {
+                "id": "222",
+                "quantity": 3
+            }],
+            "parcels": [{
+                "id": "1",
+                "measurements": {
+                    "heightInMillimeter": 200,
+                    "lengthInMillimeter": 100,
+                    "weightInGram": 500,
+                    "widthInMillimeter": 200
+                },
+                "trackingData": {
+                    "carrier": "DHL",
+                    "isReturn": false,
+                    "provider": "provider",
+                    "providerTransaction": "transaction provider",
+                    "trackingId": "123456789"
+                }
+            },
+            {
+                "id": "2",
+                "measurements": {
+                    "heightInMillimeter": 200,
+                    "lengthInMillimeter": 100,
+                    "widthInMillimeter": 200
+                },
+                "trackingData": {
+                    "isReturn": true,
+                    "provider": "abcd",
+                    "providerTransaction": "dcba",
+                    "trackingId": "2222222"
+                }
+            }]
+        }]
+    }
 }]
 ```
 

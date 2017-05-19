@@ -62,7 +62,7 @@ test(`DeliveriesCsvParser::parse
     path.join(__dirname, deliveriesTestFolder, 'delivery.csv')
   )
   const outputStream = StreamTest['v2'].toText((err, result) => {
-    t.equal(JSON.parse(result).length, 3, 'All rows in the csv are parsed')
+    t.equal(JSON.parse(result).length, 2, 'All rows in the csv are parsed')
     t.notOk(err)
     t.end()
   })
@@ -102,7 +102,8 @@ test(`DeliveriesCsvParser::parse
   )
   const outputStream = StreamTest['v2'].toText((err) => {
     t.ok(
-      /Required headers missing: 'item\.quantity'/.test(spy.args[0][0]),
+      // eslint-disable-next-line max-len
+      /Required headers missing: 'orderNumber,item\.quantity'/.test(spy.args[0][0]),
       'Error with missing header is returned'
     )
     logger.error.restore()
@@ -118,6 +119,7 @@ test(`DeliveriesCsvParser::processData
     logger
   )
   const mockDelivery = {
+    orderNumber: '222',
     'delivery.id': '1',
     _itemGroupId: '1',
     'item.id': '123',
@@ -135,35 +137,38 @@ test(`DeliveriesCsvParser::processData
   }
 
   deliveriesParser.processData(mockDelivery).then((result) => {
-    t.equal(result.id, mockDelivery['delivery.id'], 'orderNumber is parsed')
-
     const _mockResult = {
-      id: '1',
-      items: [
-        {
-          _groupId: '1',
-          id: '123',
-          quantity: 1,
-        },
-      ],
-      parcels: [
-        {
+      orderNumber: '222',
+      shippingInfo: {
+        deliveries: [{
           id: '1',
-          measurements: {
-            lengthInMillimeter: 100,
-            heightInMillimeter: 200,
-            widthInMillimeter: 200,
-            weightInGram: 500,
-          },
-          trackingData: {
-            trackingId: '123456789',
-            carrier: 'DHL',
-            provider: 'parcel provider',
-            providerTransaction: 'parcelTransaction provider',
-            isReturn: false,
-          },
-        },
-      ],
+          items: [
+            {
+              _groupId: '1',
+              id: '123',
+              quantity: 1,
+            },
+          ],
+          parcels: [
+            {
+              id: '1',
+              measurements: {
+                lengthInMillimeter: 100,
+                heightInMillimeter: 200,
+                widthInMillimeter: 200,
+                weightInGram: 500,
+              },
+              trackingData: {
+                trackingId: '123456789',
+                carrier: 'DHL',
+                provider: 'parcel provider',
+                providerTransaction: 'parcelTransaction provider',
+                isReturn: false,
+              },
+            },
+          ],
+        }],
+      },
     }
 
     t.deepEqual(
@@ -184,32 +189,66 @@ test(`DeliveriesCsvParser::parse
     path.join(__dirname, deliveriesTestFolder, 'delivery.csv')
   )
   const outputStream = StreamTest['v2'].toText((err, _result) => {
-    const result = JSON.parse(_result)
+    const orders = JSON.parse(_result)
     t.equal(
-      result.length,
+      orders.length,
+      2,
+      'There should be 2 order objects'
+    )
+
+    // First order
+    t.equal(
+      orders[0].orderNumber,
+      '222',
+      'First order should have a correct orderNumber'
+    )
+
+    let deliveries = orders[0].shippingInfo.deliveries
+    t.equal(
+      deliveries.length,
       3,
       'There should be 3 delivery objects'
     )
 
-    let delivery = result.find(d => d.id === '1')
+    let delivery = deliveries.find(d => d.id === '1')
     t.equal(
       delivery.items.length,
-      2,
-      'First delivery should have 2 delivery items'
+      3,
+      'First delivery should have 3 delivery items'
     )
 
-    delivery = result.find(d => d.id === '2')
+    delivery = deliveries.find(d => d.id === '2')
     t.equal(
       delivery.items.length,
       1,
       'Second delivery should have 1 delivery item'
     )
 
-    delivery = result.find(d => d.id === '3')
+    delivery = deliveries.find(d => d.id === '3')
     t.equal(
       delivery.items.length,
       4,
       'Third delivery should have 4 delivery items'
+    )
+
+    // Second order
+    t.equal(
+      orders[1].orderNumber,
+      '100',
+      'Second order should have a correct orderNumber'
+    )
+
+    deliveries = orders[1].shippingInfo.deliveries
+    t.equal(
+      deliveries.length,
+      1,
+      'There should be 1 delivery object'
+    )
+
+    t.equal(
+      deliveries[0].id,
+      '1',
+      'First delivery should have a correct ID'
     )
 
     t.end()
@@ -226,14 +265,35 @@ test(`DeliveriesCsvParser::parse
     path.join(__dirname, deliveriesTestFolder, 'delivery-with-parcel.csv')
   )
   const outputStream = StreamTest['v2'].toText((err, _result) => {
-    const result = JSON.parse(_result)
+    const orders = JSON.parse(_result)
+
     t.equal(
-      result.length,
-      1,
-      'There should be only one delivery'
+      orders.length,
+      2,
+      'There should be two orders'
     )
 
-    const deliveryParcels = result[0].parcels
+    // First order
+    t.equal(
+      orders[0].orderNumber,
+      '222',
+      'First order should have a correct orderNumber'
+    )
+
+    t.equal(
+      orders[0].shippingInfo.deliveries.length,
+      1,
+      'First order should have only one delivery'
+    )
+
+    const deliveries = orders[0].shippingInfo.deliveries
+    t.equal(
+      deliveries.length,
+      1,
+      'First order should have only one delivery '
+    )
+
+    const deliveryParcels = deliveries[0].parcels
     t.equal(
       deliveryParcels.length,
       2,
@@ -272,6 +332,19 @@ test(`DeliveriesCsvParser::parse
       'Second parcel should not have isReturn field'
     )
 
+    // Second order
+    t.equal(
+      orders[1].orderNumber,
+      '111',
+      'Second order should have a correct orderNumber'
+    )
+
+    t.equal(
+      orders[1].shippingInfo.deliveries.length,
+      1,
+      'First order should have only one delivery'
+    )
+
     t.end()
   })
   deliveriesParser.parse(readStream, outputStream)
@@ -289,7 +362,7 @@ test(`DeliveriesCsvParser::parse
   const outputStream = StreamTest['v2'].toText((err, _result) => {
     const result = JSON.parse(_result)
 
-    const _mockResult = [
+    const _mockResultDeliveries = [
       {
         id: '1',
         items: [
@@ -350,6 +423,13 @@ test(`DeliveriesCsvParser::parse
         ],
       },
     ]
+
+    const _mockResult = [{
+      orderNumber: '222',
+      shippingInfo: {
+        deliveries: _mockResultDeliveries,
+      },
+    }]
 
     t.deepEqual(
       result,
