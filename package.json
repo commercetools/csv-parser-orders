@@ -105,6 +105,7 @@
     "highland": "^2.10.1",
     "load-pkg": "^3.0.1",
     "npmlog": "^4.0.1",
+    "object-path": "^0.11.4",
     "pretty-error": "^2.0.2",
     "sphere-node-sdk": "^1.16.1",
     "sphere-node-utils": "^0.9.1",

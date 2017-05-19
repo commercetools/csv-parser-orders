@@ -9,9 +9,11 @@
 Convert [commercetools orders](http://dev.commercetools.com/http-api-projects-orders.html) CSV data to JSON
 
 This module is [_update actions_](http://dev.commercetools.com/http-api-projects-orders.html#update-actions) based.
-Update actions currently supported is:
+Update actions currently supported are:
 - [Add ReturnInfo](http://dev.commercetools.com/http-api-projects-orders.html#add-returninfo)
 - [Change the state of LineItem according to allowed transitions](http://dev.commercetools.com/http-api-projects-orders.html#change-the-state-of-lineitem-according-to-allowed-transitions)
+- [Add deliveries](https://dev.commercetools.com/http-api-projects-orders.html#add-delivery)
+- [Add parcel to delivery](https://dev.commercetools.com/http-api-projects-orders.html#add-parcel)
 
 ## Usage
 
@@ -94,6 +96,75 @@ Data is exported in JSON in this format
   }]
 }]
 ```
+
+## CSV format
+
+### Deliveries
+CSV file with deliveries have the following format:
+```csv
+orderNumber,delivery.id,_itemGroupId,item.id,item.quantity,parcel.id,parcel.length,parcel.height,parcel.width,parcel.weight,parcel.trackingId,parcel.carrier,parcel.provider,parcel.providerTransaction,parcel.isReturn
+111,1,1,123,1,1,100,200,200,500,123456789,DHL,provider,transaction provider,0
+111,1,2,222,3,1,100,200,200,500,123456789,DHL,provider,transaction provider,0
+111,1,1,123,1,2,100,200,200,500,2222222,,abcd,dcba,true
+```
+Where CSV fields `orderNumber, delivery.id, _itemGroupId, item.id, item.quantity` are mandatory because every delivery has to have at least one delivery item.
+
+If the CSV file contains measurement fields (`parcel.length, parcel.height, parcel.width, parcel.weight`) all of them has to be provided or the parser returns an error `All measurement fields are mandatory`.
+
+Because an API allows us to save multiple delivery items with same `id` and `quantity` there is `_itemGroupId` field which helps us to distinguish different delivery items. This field has to have a unique value for different delivery items (in example above CSV rows 2 and 3 belongs to one delivery which has 2 delivery items - two different _itemGroupIds).
+
+Example provided above will be parsed into following JSON:
+```json
+[{
+    "orderNumber": "111",
+    "shippingInfo": {
+        "deliveries": [{
+            "id": "1",
+            "items": [{
+                "id": "123",
+                "quantity": 1
+            },
+            {
+                "id": "222",
+                "quantity": 3
+            }],
+            "parcels": [{
+                "id": "1",
+                "measurements": {
+                    "heightInMillimeter": 200,
+                    "lengthInMillimeter": 100,
+                    "weightInGram": 500,
+                    "widthInMillimeter": 200
+                },
+                "trackingData": {
+                    "carrier": "DHL",
+                    "isReturn": false,
+                    "provider": "provider",
+                    "providerTransaction": "transaction provider",
+                    "trackingId": "123456789"
+                }
+            },
+            {
+                "id": "2",
+                "measurements": {
+                    "heightInMillimeter": 200,
+                    "lengthInMillimeter": 100,
+                    "widthInMillimeter": 200,
+                    "weightInGram": 500,
+                },
+                "trackingData": {
+                    "isReturn": true,
+                    "provider": "abcd",
+                    "providerTransaction": "dcba",
+                    "trackingId": "2222222"
+                }
+            }]
+        }]
+    }
+}]
+```
+
+More delivery examples can be seen [here](test/helpers/deliveries).
 
 ## Configuration
 `CsvParserOrders` main methods accepts three objects as arguments:
