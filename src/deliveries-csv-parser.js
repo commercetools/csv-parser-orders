@@ -119,8 +119,16 @@ export default class DeliveriesCsvParser {
     }
 
     // Add parcel info if it is present
-    if (data['parcel.id'])
-      delivery.parcels = [DeliveriesCsvParser._parseParcelInfo(data)]
+    if (data['parcel.id']) {
+      const parcel = DeliveriesCsvParser._parseParcelInfo(data)
+
+      if (parcel.measurements && Object.keys(parcel.measurements).length !== 4)
+        return Promise.reject(new Error(
+          'All measurement fields are mandatory'
+        ))
+
+      delivery.parcels = [parcel]
+    }
 
     const order = {
       orderNumber: data['orderNumber'],

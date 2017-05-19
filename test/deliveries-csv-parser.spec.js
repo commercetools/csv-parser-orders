@@ -315,12 +315,6 @@ test(`DeliveriesCsvParser::parse
     )
 
     t.equal(
-      parcel.measurements.weightInGram,
-      undefined,
-      'Second parcel should not have weight field'
-    )
-
-    t.equal(
       parcel.trackingData.carrier,
       undefined,
       'Second parcel should not have carrier field'
@@ -442,3 +436,25 @@ test(`DeliveriesCsvParser::parse
   deliveriesParser.parse(readStream, outputStream)
 })
 
+
+test(`DeliveriesCsvParser::parse
+  should return error when not all measurements are provided`, (t) => {
+  const spy = sinon.stub(logger, 'error')
+  const deliveriesParser = new DeliveriesCsvParser(
+    logger
+  )
+  const readStream = fs.createReadStream(
+    // eslint-disable-next-line max-len
+    path.join(__dirname, deliveriesTestFolder, 'delivery-error-measurements.csv')
+  )
+  const outputStream = StreamTest['v2'].toText((err) => {
+    t.ok(
+      /All measurement fields are mandatory/.test(spy.args[0][0]),
+      'Error with missing measurements'
+    )
+    logger.error.restore()
+    t.notOk(err)
+    t.end()
+  })
+  deliveriesParser.parse(readStream, outputStream)
+})
