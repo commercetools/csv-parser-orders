@@ -30,13 +30,13 @@ Options:
   --help, -h        Show help text.                                    [boolean]
   --version, -v     Show version number.                               [boolean]
   --type, -t        Predefined type of csv
-                             [required] [choices: "lineitemstate", "returninfo"]
+                             [required] [choices: "lineitemstate", "returninfo", "deliveries"]
   --inputFile, -i   Path to CSV file.                         [default: "stdin"]
   --outputFile, -o  Input CSV file.                          [default: "stdout"]
   --batchSize, -b   Number of CSV rows to handle simultaneously.  [default: 100]
   --delimiter, -d   Used CSV delimiter.                           [default: ","]
   --strictMode, -s  Parse CSV strictly.                          [default: true]
-  --projectKey, -p  API project key.                                  [required]
+  --projectKey, -p  API project key.
   --host            HTTP client host parameter.
   --protocol        HTTP client protocol parameter.
   --accessToken     HTTP client access token.
