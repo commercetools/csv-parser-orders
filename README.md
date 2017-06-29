@@ -1,11 +1,11 @@
 [![commercetools logo][commercetools-icon]][commercetools]
 ⛔ [Deprecated]
 # CSV Parser Orders
-Convert [commercetools order](https://dev.commercetools.com/http-api-projects-orders.html) CSV data to JSON.s
+Convert [commercetools order](https://dev.commercetools.com/http-api-projects-orders.html) CSV data to JSON.
 
 This repo has been deprecated and the code migrated to this [repo](https://github.com/commercetools/nodejs).
 
-The documentation about this module can be found [here](https://commercetools.github.io/nodejs/cli/csv-parser-order.html)
+The documentation about this module can be found [here](https://commercetools.github.io/nodejs/cli/csv-parser-orders.html)
 Please report all issues about this repo [here](https://github.com/commercetools/nodejs)
 
 [commercetools]: https://commercetools.com/
